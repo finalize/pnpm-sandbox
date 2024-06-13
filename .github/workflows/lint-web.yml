@@ -2,7 +2,11 @@ name: Lint web
 
 on:
   pull_request:
+    paths:
+      - web/**
   push:
+    paths:
+      - web/**
 
 env:
   NODE_OPTIONS: --max-old-space-size=4096
@@ -26,16 +30,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          path: web
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 9
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: "pnpm"
+          cache-dependency-path: ./web/pnpm-lock.yaml
 
       - name: Install dependencies
         run: pnpm install
@@ -44,6 +52,7 @@ jobs:
       #   working-directory: web
       #   run: |
       #     npx npm run format
+
       # - name: git status after format
       #   working-directory: web
       #   id: gitstatus_format
@@ -53,6 +62,7 @@ jobs:
       #     else
       #       echo "status=clean" >> "${GITHUB_OUTPUT}"
       #     fi
+
       # - name: git push after format
       #   if: steps.gitstatus_format.outputs.status == 'dirty'
       #   run: |
@@ -65,10 +75,13 @@ jobs:
       #     git push origin "HEAD:${GITHUB_HEAD_REF}"
 
       - name: npm run lint
+        working-directory: web
+        # if: steps.gitstatus_format.outputs.status == 'clean'
         run: |
           npm run lint
 
       - name: git status after lint
+        working-directory: web
         id: gitstatus_lint
         run: |
           if [ -n "$(git diff --shortstat web)" ]; then
