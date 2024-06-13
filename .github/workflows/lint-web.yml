@@ -28,7 +28,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: "pnpm"
 
       - uses: pnpm/action-setup@v4
         name: Install pnpm
@@ -51,3 +50,25 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+
+      - name: npm run lint
+        run: |
+          npm run lint
+      - name: git status after lint
+        id: gitstatus_lint
+        run: |
+          if [ -n "$(git diff --shortstat web)" ]; then
+            echo "status=dirty" >> "${GITHUB_OUTPUT}"
+          else
+            echo "status=clean" >> "${GITHUB_OUTPUT}"
+          fi
+      - name: git push after lint
+        if: steps.gitstatus_lint.outputs.status == 'dirty'
+        run: |
+          git status --short
+          git add --update web
+          # from https://github.com/orgs/community/discussions/26560
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git commit -m "Update lint errors"
+          git push origin "HEAD:${GITHUB_HEAD_REF}"
