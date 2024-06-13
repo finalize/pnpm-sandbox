@@ -2,7 +2,11 @@ name: Lint web
 
 on:
   pull_request:
+    paths:
+      - web/**
   push:
+    paths:
+      - web/**
 
 env:
   NODE_OPTIONS: --max-old-space-size=4096
@@ -43,7 +47,7 @@ jobs:
       - uses: actions/cache@v4
         name: Setup pnpm cache
         with:
-          path: ${{ env.STORE_PATH }}
+          path: ./
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
@@ -51,9 +55,34 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      # - name: npm run format
+      #   working-directory: web
+      #   run: |
+      #     npx npm run format
+      # - name: git status after format
+      #   working-directory: web
+      #   id: gitstatus_format
+      #   run: |
+      #     if [ -n "$(git diff --shortstat web)" ]; then
+      #       echo "status=dirty" >> "${GITHUB_OUTPUT}"
+      #     else
+      #       echo "status=clean" >> "${GITHUB_OUTPUT}"
+      #     fi
+      # - name: git push after format
+      #   if: steps.gitstatus_format.outputs.status == 'dirty'
+      #   run: |
+      #     git status --short
+      #     git add --update web
+      #     # from https://github.com/orgs/community/discussions/26560
+      #     git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      #     git config user.name "github-actions[bot]"
+      #     git commit -m "Update format"
+      #     git push origin "HEAD:${GITHUB_HEAD_REF}"
+
       - name: npm run lint
         run: |
           npm run lint
+
       - name: git status after lint
         id: gitstatus_lint
         run: |
@@ -62,6 +91,7 @@ jobs:
           else
             echo "status=clean" >> "${GITHUB_OUTPUT}"
           fi
+
       - name: git push after lint
         if: steps.gitstatus_lint.outputs.status == 'dirty'
         run: |
