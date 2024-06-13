@@ -2,11 +2,7 @@ name: Lint web
 
 on:
   pull_request:
-    paths:
-      - web/**
   push:
-    paths:
-      - web/**
 
 env:
   NODE_OPTIONS: --max-old-space-size=4096
