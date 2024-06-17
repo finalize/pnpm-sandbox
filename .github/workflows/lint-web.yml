@@ -47,37 +47,63 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      # - name: npm run format
-      #   working-directory: web
-      #   run: |
-      #     npx npm run format
-
-      # - name: git status after format
-      #   working-directory: web
-      #   id: gitstatus_format
-      #   run: |
-      #     if [ -n "$(git diff --shortstat web)" ]; then
-      #       echo "status=dirty" >> "${GITHUB_OUTPUT}"
-      #     else
-      #       echo "status=clean" >> "${GITHUB_OUTPUT}"
-      #     fi
-
-      # - name: git push after format
-      #   if: steps.gitstatus_format.outputs.status == 'dirty'
-      #   run: |
-      #     git status --short
-      #     git add --update web
-      #     # from https://github.com/orgs/community/discussions/26560
-      #     git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-      #     git config user.name "github-actions[bot]"
-      #     git commit -m "Update format"
-      #     git push origin "HEAD:${GITHUB_HEAD_REF}"
-
-      - name: npm run lint
+      - name: pnpm lint
         working-directory: web
         # if: steps.gitstatus_format.outputs.status == 'clean'
         run: |
-          npm run lint
+          pnpm lint
+
+      - name: git status after lint
+        working-directory: web
+        id: gitstatus_lint
+        run: |
+          if [ -n "$(git diff --shortstat web)" ]; then
+            echo "status=dirty" >> "${GITHUB_OUTPUT}"
+          else
+            echo "status=clean" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: git push after lint
+        if: steps.gitstatus_lint.outputs.status == 'dirty'
+        run: |
+          git status --short
+          git add --update web
+          # from https://github.com/orgs/community/discussions/26560
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git commit -m "Update lint errors"
+          git push origin "HEAD:${GITHUB_HEAD_REF}"
+  lint_fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      matrix:
+        node-version: [20]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "pnpm"
+          cache-dependency-path: ./web/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: pnpm lint
+        working-directory: web
+        # if: steps.gitstatus_format.outputs.status == 'clean'
+        run: |
+          pnpm lint:fix
 
       - name: git status after lint
         working-directory: web
