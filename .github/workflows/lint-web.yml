@@ -44,6 +44,15 @@ jobs:
           cache: "pnpm"
           cache-dependency-path: ./web/pnpm-lock.yaml
 
+      - name: Cache pnpm dependencies
+        id: pnpm-cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
       - name: Install dependencies
         run: pnpm install
 
