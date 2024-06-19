@@ -21,6 +21,8 @@ jobs:
     strategy:
       matrix:
         node-version: [20]
+    env:
+      STORE_PATH: null
 
     steps:
       - name: Checkout
