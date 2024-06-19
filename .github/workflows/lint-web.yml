@@ -46,6 +46,9 @@ jobs:
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+          PNPM_HOME: /home/runner/setup-pnpm/node_modules/.bin
 
       - name: Install dependencies
         run: pnpm install
